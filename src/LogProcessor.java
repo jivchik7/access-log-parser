@@ -6,7 +6,7 @@ import java.util.regex.Pattern;
 
 public class LogProcessor {
     public static void main(String[] args) {
-        String path = "C:\\Users\\EVMinaeva\\IdeaProjects\\AccessLogParser\\access.log"; // Исправлен путь для Windows
+        String path = "C:\\Users\\EVMinaeva\\IdeaProjects\\AccessLogParser\\access.log";
 
         int totalLines = 0;
         int yandexBotCount = 0;
@@ -28,26 +28,26 @@ public class LogProcessor {
 
                 Matcher matcher = userAgentPattern.matcher(line);
                 if (matcher.find()) {
-                    String userAgent = matcher.group(1); // извлекаем User-Agent
+                    String userAgent = matcher.group(1);
 
-                    // Обработка User-Agent
+
                     int startIndex = userAgent.indexOf('(');
                     if (startIndex == -1 || startIndex >= userAgent.length() - 1) {
-                        continue; // Пропускаем строку, если не найдена открывающая скобка
+                        continue;
                     }
 
                     int endIndex = userAgent.indexOf(')', startIndex + 1);
                     if (endIndex == -1 ||  endIndex <= startIndex) {
-                        continue; // Пропускаем строку, если не найдена закрывающая скобка
+                        continue;
                     }
 
                     String firstBracketContent = userAgent.substring(startIndex + 1, endIndex);
 
                     String[] parts = firstBracketContent.split(";");
                     if (parts.length >= 2) {
-                        String fragment = parts[1].trim(); // Второй фрагмент после точки с запятой
+                        String fragment = parts[1].trim();
 
-                        // Отделяем часть до слэша
+
                         String programName = fragment.contains("/")
                                 ? fragment.substring(0, fragment.indexOf('/'))
                                 : fragment;
