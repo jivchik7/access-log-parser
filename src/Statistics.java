@@ -1,6 +1,9 @@
 import java.time.Duration;
 import java.time.LocalDateTime;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+
 public class Statistics {
 
     private long totalTraffic;
@@ -17,10 +20,10 @@ public class Statistics {
         totalTraffic += entry.getResponseSize();
 
         LocalDateTime time = entry.getDateTime();
-        if (minTime == null || time.isBefore(minTime)) {
+        if (minTime == null ||  time.isBefore(minTime)) {
             minTime = time;
         }
-        if (maxTime == null || time.isAfter(maxTime)) {
+        if (maxTime == null ||  time.isAfter(maxTime)) {
             maxTime = time;
         }
     }
