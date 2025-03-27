@@ -1,6 +1,9 @@
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
+import java.util.Set;
+import java.util.Map;
+
 
 public class LogEntry {
     private LocalDateTime dateTime;
@@ -48,6 +51,12 @@ public class LogEntry {
         this.responseSize = Long.parseLong(parts[9]);
         this.referer = parts[10];
         this.userAgent = new UserAgent(parts[11]);
+    }
+    public int getStatusCode(){
+        return responseCode;
+    }
+    public String getRequestURL(){
+        return requestPath;
     }
 
     public String getIpAddress() {
