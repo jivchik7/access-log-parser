@@ -28,7 +28,7 @@ public class UserAgent {
         this.os = operatingSystem;
 
 
-        Browser browser = determineBrowser(parts[1]);
+        Browser browser = determineBrowser(parts[0]);
         this.browser = browser;
     }
 

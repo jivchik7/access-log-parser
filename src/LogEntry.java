@@ -1,5 +1,6 @@
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 
 public class LogEntry {
     private LocalDateTime dateTime;
@@ -24,7 +25,7 @@ public class LogEntry {
     }
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER =
-            DateTimeFormatter.ofPattern("dd/MMM/yyyy:HH:mm:ss Z");
+            DateTimeFormatter.ofPattern("dd/MMM/yyyy:HH:mm:ss Z", Locale.ENGLISH);
 
     public LogEntry(String logLine) throws IllegalArgumentException {
         String[] parts = logLine.split(" ");
@@ -35,8 +36,9 @@ public class LogEntry {
 
         this.ipAddress = parts[0];
 
+        String text = parts[3] + " " + parts[4];
         this.dateTime = LocalDateTime.parse(
-                parts[3] + " " + parts[4],
+                text.substring(1,text.length()-1),
                 DATE_TIME_FORMATTER
         );
 
