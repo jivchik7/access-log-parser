@@ -5,6 +5,9 @@ public class UserAgent {
     private final OperatingSystem os;
     private final Browser browser;
 
+    public boolean contains(String bot) {
+    return false;}
+
     public enum OperatingSystem {
         WINDOWS,
         MAC_OS,
