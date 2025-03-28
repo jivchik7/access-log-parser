@@ -2,6 +2,8 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.Map.Entry;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 public class Statistics {
     private long totalTraffic;
@@ -11,10 +13,11 @@ public class Statistics {
     private Set<String> nonExistentPages = new HashSet<>();
     private Map<String, Integer> browserFrequency = new HashMap<>();
 
+    private Map<Integer, Integer> visitsBySecond = new HashMap<>();
 
-    private int visitCount = 0;
-    private int errorCount = 0;
-    private Set<String> uniqueIPAddresses = new HashSet<>();
+    private Map<String, Integer> ipVisitCounts = new HashMap<>();
+
+    private Set<String> referringDomains = new HashSet<>();
 
     public Statistics() {
         reset();
@@ -35,14 +38,26 @@ public class Statistics {
             nonExistentPages.add(entry.getRequestURL());
         }
 
+
         boolean isBot = entry.getUserAgent().contains("bot");
         if (!isBot) {
-            visitCount++;
-            uniqueIPAddresses.add(entry.getIpAddress());
-        }
 
-        if (entry.getStatusCode() >= 400 && entry.getStatusCode() < 600) {
-            errorCount++;
+            int second = time.getSecond();
+            visitsBySecond.compute(second, (k, v) -> v == null ? 1 : v + 1);
+
+
+            String ipAddress = entry.getIpAddress();
+            ipVisitCounts.merge(ipAddress, 1, Integer::sum);
+
+
+            String referrer = entry.getReferer();
+            if (referrer != null) {
+
+                String domain = extractDomain(referrer);
+                if (domain != null) {
+                    referringDomains.add(domain);
+                }
+            }
         }
 
         String browserName = entry.getUserAgent().getBrowser().toString();
@@ -53,8 +68,43 @@ public class Statistics {
         }
     }
 
+    private static String extractDomain(String url) {
+        try {
+            URI uri = new URI(url);
+            String host = uri.getHost();
+            if (host != null) {
+                return host.startsWith("www.") ? host.substring(4) : host;
+            }
+        } catch (URISyntaxException e) {
+            System.err.println("Ошибка при разборе URL: " + url);
+        }
+        return null;
+    }
+
+
+    public int getPeakVisitsPerSecond() {
+        return visitsBySecond.values().stream()
+                .mapToInt(Integer::valueOf)
+                .max()
+                .orElse(0);
+    }
+
+    public Set<String> getReferringDomains() {
+        return referringDomains;
+    }
+
+    public int getMaxVisitsBySingleUser() {
+        return ipVisitCounts.values().stream()
+                .mapToInt(Integer::valueOf)
+                .max()
+                .orElse(0);
+    }
+
+    public Set<String> getNonExistentPages() {
+        return nonExistentPages;
+    }
     public double getTrafficRate() {
-        if (minTime == null ||  maxTime == null) {
+        if (minTime == null || maxTime == null) {
             return 0;
         }
 
@@ -68,47 +118,6 @@ public class Statistics {
         return (double) totalTraffic / hoursBetween;
     }
 
-    public double getAverageVisitsPerHour() {
-        if (visitCount == 0 || minTime == null ||  maxTime == null) {
-            return 0;
-        }
-
-        Duration duration = Duration.between(minTime, maxTime);
-        long hoursBetween = duration.toHours();
-
-        if (hoursBetween == 0) {
-            return visitCount;
-        }
-
-        return (double) visitCount / hoursBetween;
-    }
-
-    public double getAverageErrorsPerHour() {
-        if (errorCount == 0 || minTime == null || maxTime == null) {
-            return 0;
-        }
-
-        Duration duration = Duration.between(minTime, maxTime);
-        long hoursBetween = duration.toHours();
-
-        if (hoursBetween == 0) {
-            return errorCount;
-        }
-
-        return (double) errorCount / hoursBetween;
-    }
-
-    public double getAverageVisitsPerUniqueUser() {
-        if (uniqueIPAddresses.size() == 0 || visitCount == 0) {
-            return 0;
-        }
-
-        return (double) visitCount / uniqueIPAddresses.size();
-    }
-
-    public Set<String> getNonExistentPages() {
-        return nonExistentPages;
-    }
 
     public Map<String, Double> getBrowserDistribution() {
         int totalBrowsers = browserFrequency.values().stream().mapToInt(Integer::intValue).sum();
@@ -130,8 +139,8 @@ public class Statistics {
         maxTime = null;
         nonExistentPages.clear();
         browserFrequency.clear();
-        visitCount = 0;
-        errorCount = 0;
-        uniqueIPAddresses.clear();
+        visitsBySecond.clear();
+        ipVisitCounts.clear();
+        referringDomains.clear();
     }
 }
