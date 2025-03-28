@@ -11,10 +11,11 @@ public class Statistics {
     private LocalDateTime minTime;
     private LocalDateTime maxTime;
 
-    private HashSet<String> uniquePages = new HashSet<>();
+
+    private HashSet<String> nonExistentPages = new HashSet<>();
 
 
-    private HashMap<String, Integer> osFrequency = new HashMap<>();
+    private HashMap<String, Integer> browserFrequency = new HashMap<>();
 
     public Statistics() {
         reset();
@@ -24,22 +25,24 @@ public class Statistics {
         totalTraffic += entry.getResponseSize();
 
         LocalDateTime time = entry.getDateTime();
-        if (minTime == null || time.isBefore(minTime)) {
+        if (minTime == null ||  time.isBefore(minTime)) {
             minTime = time;
         }
-        if (maxTime == null || time.isAfter(maxTime)) {
+        if (maxTime == null ||  time.isAfter(maxTime)) {
             maxTime = time;
         }
-        if (entry.getStatusCode() == 200) {
-            uniquePages.add(entry.getRequestURL());
+
+
+        if (entry.getStatusCode() == 404) {
+            nonExistentPages.add(entry.getRequestURL());
         }
 
 
-        String osName = entry.getUserAgent().getOs().toString();
-        if (!osFrequency.containsKey(osName)) {
-            osFrequency.put(osName, 1);
+        String browserName = entry.getUserAgent().getBrowser().toString();
+        if (!browserFrequency.containsKey(browserName)) {
+            browserFrequency.put(browserName, 1);
         } else {
-            osFrequency.put(osName, osFrequency.get(osName) + 1);
+            browserFrequency.put(browserName, browserFrequency.get(browserName) + 1);
         }
     }
 
@@ -59,20 +62,20 @@ public class Statistics {
     }
 
 
-    public Set<String> getUniquePages() {
-        return uniquePages;
+    public Set<String> getNonExistentPages() {
+        return nonExistentPages;
     }
 
 
-    public Map<String, Double> getOSDistribution() {
-        int totalCount = osFrequency.values().stream().mapToInt(Integer::intValue).sum();
+    public Map<String, Double> getBrowserDistribution() {
+        int totalBrowsers = browserFrequency.values().stream().mapToInt(Integer::intValue).sum();
         HashMap<String, Double> distribution = new HashMap<>();
 
-        for (Entry<String, Integer> entry : osFrequency.entrySet()) {
-            String osName = entry.getKey();
+        for (Entry<String, Integer> entry : browserFrequency.entrySet()) {
+            String browserName = entry.getKey();
             int count = entry.getValue();
-            double ratio = (double) count / totalCount;
-            distribution.put(osName, ratio);
+            double ratio = (double) count / totalBrowsers;
+            distribution.put(browserName, ratio);
         }
 
         return distribution;
@@ -82,7 +85,7 @@ public class Statistics {
         totalTraffic = 0;
         minTime = null;
         maxTime = null;
-        uniquePages.clear();
-        osFrequency.clear();
+        nonExistentPages.clear();
+        browserFrequency.clear();
     }
 }

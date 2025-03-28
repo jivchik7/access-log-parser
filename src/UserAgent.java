@@ -1,8 +1,9 @@
-public class UserAgent {
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+public class UserAgent {
     private final OperatingSystem os;
     private final Browser browser;
-
 
     public enum OperatingSystem {
         WINDOWS,
@@ -16,51 +17,47 @@ public class UserAgent {
         FIREFOX,
         CHROME,
         OPERA,
+        SAFARI,
         OTHER
     }
 
-
     public UserAgent(String userAgent) {
-        String[] parts = userAgent.split(";");
-
-
-        OperatingSystem operatingSystem = determineOperatingSystem(parts[0]);
-        this.os = operatingSystem;
-
-
-        Browser browser = determineBrowser(parts[0]);
-        this.browser = browser;
+        this.os = parseOperatingSystem(userAgent);
+        this.browser = parseBrowser(userAgent);
     }
 
+    private OperatingSystem parseOperatingSystem(String userAgent) {
+        Pattern pattern = Pattern.compile("\\$(.*?)\\$");
+        Matcher matcher = pattern.matcher(userAgent);
 
-    private OperatingSystem determineOperatingSystem(String part) {
-        part = part.trim().toLowerCase();
-        if (part.contains("windows")) {
-            return OperatingSystem.WINDOWS;
-        } else if (part.contains("macos")) {
-            return OperatingSystem.MAC_OS;
-        } else if (part.contains("linux")) {
-            return OperatingSystem.LINUX;
-        } else {
-            return OperatingSystem.UNKNOWN;
+        if (matcher.find()) {
+            String osPart = matcher.group(1);
+            if (osPart.contains("Windows")) {
+                return OperatingSystem.WINDOWS;
+            } else if (osPart.contains("Macintosh") || osPart.contains("Mac OS X")) {
+                return OperatingSystem.MAC_OS;
+            } else if (osPart.contains("Linux")) {
+                return OperatingSystem.LINUX;
+            }
         }
+        return OperatingSystem.UNKNOWN;
     }
 
-    private Browser determineBrowser(String part) {
-        part = part.trim().toLowerCase();
-        if (part.contains("edge")) {
+    private Browser parseBrowser(String userAgent) {
+        // Поиск известных браузеров
+        if (userAgent.contains("Edg")) {
             return Browser.EDGE;
-        } else if (part.contains("firefox")) {
+        } else if (userAgent.contains("Firefox")) {
             return Browser.FIREFOX;
-        } else if (part.contains("chrome")) {
+        } else if (userAgent.contains("Chrome")) {
             return Browser.CHROME;
-        } else if (part.contains("opera")) {
+        } else if (userAgent.contains("Opera")) {
             return Browser.OPERA;
-        } else {
-            return Browser.OTHER;
+        } else if (userAgent.contains("Safari")) {
+            return Browser.SAFARI;
         }
+        return Browser.OTHER;
     }
-
 
     public OperatingSystem getOs() {
         return os;
